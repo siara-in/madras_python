@@ -38,7 +38,7 @@ from madras import copy_from
 copy_from(df, "out.mdsi", pk_columns=["state", "name"], word_index=["bio"])
 ```
 
-For Spark, the practical pattern today is export-then-read (`r.to_arrow().to_pandas()`, or write Parquet and read that from Spark) — see [madras_java](https://github.com/siara-in/madras_java) for a native Spark Data Source instead.
+These bindings don't go through Spark. For PySpark, use [madras_java](https://github.com/siara-in/madras_java#getting-started)'s Data Source V2 connector directly (`spark.read.format("madras").load(...)`, with its JAR on the classpath) rather than this package — or, if you just need a one-off export, `r.to_arrow().to_pandas()` here and write Parquet for Spark to read.
 
 ## License
 
