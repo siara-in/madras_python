@@ -3,7 +3,7 @@ import pybind11
 
 # Adjust include_dirs if your madras/dv1 headers live somewhere other than
 # "../include" relative to this setup.py (i.e. sibling to this repo).
-INCLUDE_DIRS = [pybind11.get_include(), "src/madras-trie/include"]
+INCLUDE_DIRS = [pybind11.get_include(), "src/madras_sorcery_core/include"]
 EXTRA_COMPILE_ARGS = ["-std=c++11", "-O3"]
 
 ext_reader = Extension(
