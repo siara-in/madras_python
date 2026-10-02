@@ -1,5 +1,5 @@
 // madras_pybind.cpp
-// pybind11 bindings exposing madras::dv1::static_trie_map (read path) as a
+// pybind11 bindings exposing madras::dv1::static_table_map (read path) as a
 // Python extension module. Mirrors the same primitives used in madras_cli.
 
 #include <pybind11/pybind11.h>
@@ -12,7 +12,7 @@
 #include <string>
 
 #include "madras/dv1/common.hpp"
-#include "madras/dv1/reader/static_trie_map.hpp"
+#include "madras/dv1/reader/static_table_map.hpp"
 #include "madras_key_convert.hpp"
 
 typedef int64_t idx_t;
@@ -57,9 +57,9 @@ static py::object ColValueToPy(char data_type, const col_value_ptr &cv) {
 class MadrasReader {
 public:
     explicit MadrasReader(const std::string &path, bool use_mmap = true) {
-        stm_ = std::unique_ptr<static_trie_map>(new static_trie_map());
+        stm_ = std::unique_ptr<static_table_map>(new static_table_map());
         if (use_mmap) {
-            // NOTE: assumes static_trie_map has a mmap-backed load(path) method.
+            // NOTE: assumes static_table_map has a mmap-backed load(path) method.
             // If your build only supports load_from_mem, remove this branch and
             // always take the else path below (mmap performance is then simply
             // unavailable from Python, matching e.g. AVR/Arduino behavior).
@@ -205,13 +205,13 @@ public:
         char data_type = stm_->get_column_type(col_idx);
         std::vector<uint64_t> row_ids;
 
-        static_trie_map *trie_map = stm_.get();
+        static_table_map *table_map = stm_.get();
         bool is_col_trie = false;
         if (col_idx >= stm_->get_pk_col_count() && col_enc == 'T') {
-            trie_map = stm_->get_col_trie_map(col_idx);
-            if (!trie_map) {
+            table_map = stm_->get_col_table_map(col_idx);
+            if (!table_map) {
                 throw std::runtime_error(
-                    "get_col_trie_map returned null for column " + std::to_string(col_idx));
+                    "get_col_table_map returned null for column " + std::to_string(col_idx));
             }
             is_col_trie = true;
         }
@@ -220,7 +220,7 @@ public:
         uintxx_t vmax = stm_->get_max_val_len(col_idx);
         if (vmax > max_len) max_len = vmax;
         if (is_col_trie) {
-            size_t ctm = trie_map->get_max_key_len();
+            size_t ctm = table_map->get_max_key_len();
             if (ctm + 1 > max_len) max_len = ctm + 1;
         }
 
@@ -266,25 +266,25 @@ public:
             ConvertValueToKey(value, data_type, key.data(), key_len);
 
             iter_ctx it_ctx;
-            it_ctx.init(trie_map->get_max_key_len(), trie_map->get_max_level());
+            it_ctx.init(table_map->get_max_key_len(), table_map->get_max_level());
             std::vector<uint8_t> out_key_buf(max_len);
-            trie_map->find_first(key.data(), key_len, it_ctx, true);
-            int out_key_len = trie_map->next(it_ctx, out_key_buf.data());
+            table_map->find_first(key.data(), key_len, it_ctx, true);
+            int out_key_len = table_map->next(it_ctx, out_key_buf.data());
             while (out_key_len != -2) {
                 if ((uint32_t) out_key_len == key_len &&
                     memcmp(out_key_buf.data(), key.data(), key_len) == 0) {
-                    uintxx_t row_id = trie_map->leaf_rank1(it_ctx.node_path[it_ctx.cur_idx]);
+                    uintxx_t row_id = table_map->leaf_rank1(it_ctx.node_path[it_ctx.cur_idx]);
                     if (is_col_trie) {
                         struct row_collect_ctx { std::vector<uint64_t> *ids; } rcc { &row_ids };
                         auto cb = [](void *c, uintxx_t rid) -> bool {
                             ((row_collect_ctx *) c)->ids->push_back(rid);
                             return false;
                         };
-                        static_trie_map::emit_rev_rids(trie_map, row_id, cb, &rcc);
+                        static_table_map::emit_rev_rids(table_map, row_id, cb, &rcc);
                     } else {
                         row_ids.push_back(row_id);
                     }
-                    out_key_len = trie_map->next(it_ctx, out_key_buf.data());
+                    out_key_len = table_map->next(it_ctx, out_key_buf.data());
                 } else break;
             }
         }
@@ -322,7 +322,7 @@ private:
         return max_len;
     }
 
-    std::unique_ptr<static_trie_map> stm_;
+    std::unique_ptr<static_table_map> stm_;
     std::vector<uint8_t> owned_buf_; // only used in the load_from_mem path
 };
 
