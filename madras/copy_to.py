@@ -38,8 +38,7 @@ _NUMPY_DTYPE_TO_MST = {
 }
 
 # Auto-encoding sentinel, matching the DuckDB extension's 'a' convention
-# (resolved server-side there via ColumnLooksMultiWord/DetectNumericEncoding
-# sampling; here we just pick a fixed reasonable default per type, since
+# (resolved there by DetectTextEncoding / DetectNumericEncoding; here we just pick a fixed reasonable default per type, since
 # there's no bulk-sample auto-detection pass implemented on the Python side
 # yet). Pass encodings explicitly via `encodings=` to copy_from() to override.
 _DEFAULT_ENC_FOR_MST = {
@@ -47,7 +46,7 @@ _DEFAULT_ENC_FOR_MST = {
     MST_DATE: 'v', MST_TIME: 'v', MST_TIME_TZ: 'v',
     MST_TIMESTAMP: 'v', MST_TIMESTAMP_TZ: 'v',
     MST_TIMESTAMP_MS: 'v', MST_TIMESTAMP_NS: 'v', MST_TIMESTAMP_SEC: 'v',
-    MST_TEXT: 't',   # plain trie encoding by default; pass encodings={'col': 'W'} for word search
+    MST_TEXT: 't',   # plain trie encoding by default; pass encodings={'col': 'H'} for word search
     MST_BIN: 'v',
 }
 
@@ -81,7 +80,7 @@ def _infer_columns(df, pk_columns, encodings, word_index):
         if name in encodings:
             spec.enc = encodings[name]
         elif name in word_index:
-            spec.enc = 'w'  # word/phrase-search encoding, matches DetectTextEncoding's 'w'
+            spec.enc = 'H'  # word/phrase-search encoding
         elif name in pk_columns or mst_type == MST_TEXT:
             spec.enc = 't'  # trie-indexed by default for PK/text columns, enabling exact-match lookup
         else:
@@ -103,10 +102,10 @@ def copy_from(source, dest_path, table_name=None, pk_columns=None,
     pk_columns: ordered list of column names forming the primary key --
         moved to the front of column order (PK-columns-first convention).
     encodings: optional dict {column_name: encoding_char} overriding the
-        default encoding choice per column (e.g. {'name': 'W'} for
+        default encoding choice per column (e.g. {'name': 'H'} for
         word-search on a text column).
-    word_index: convenience list of column names to encode with 'w'
-        (word/phrase search) -- equivalent to encodings={name: 'w', ...}.
+    word_index: convenience list of column names to encode with 'H'
+        (word/phrase search) -- equivalent to encodings={name: 'H', ...}.
     """
     df = _coerce_to_dataframe(source)
 

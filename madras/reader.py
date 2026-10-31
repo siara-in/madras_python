@@ -17,10 +17,9 @@ _TYPE_DESC = {
 _ENC_DESC = {
     't': "trie", 'T': "trie_index",
     's': "trie_sint",  # NOTE: collides with 's'=store in the source comment; verify against your build
-    'w': "words", 'W': "words_index",
-    'u': "dict", 'd': "dict_delta",
-    'v': "vint", 'V': "vint_delta",
-    'p': "bitpack", 'P': "bitpack_delta",
+    'u': "key",
+    'v': "vint", 'p': "bitpack",
+    'h': "clawstropy", 'H': "clawstropy_index",
 }
 
 

@@ -8,7 +8,7 @@ Madras Sorcery is a compact, static datastore where a single `.mdsi` file is sim
 
 ## Getting started
 
-Requires `pybind11`, `numpy`, and a C++11 compiler. Expects [madras_sorcery_core](https://github.com/siara-in/madras_sorcery_core)'s `include/` directory at `../include` relative to this repository — clone it as a sibling, or adjust `include_dirs` in `setup.py`.
+Requires `pybind11`, `numpy`, and a C++11 compiler. Expects [madras_core](https://github.com/siara-in/madras_core)'s `include/` directory at `../include` relative to this repository — clone it as a sibling, or adjust `include_dirs` in `setup.py`.
 
 ```bash
 pip install pybind11 numpy

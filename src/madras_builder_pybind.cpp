@@ -49,7 +49,7 @@ using namespace madras::dv1;
 struct ColumnSpec {
     std::string name;
     char dt;         // MST_* type char (e.g. MST_INT, MST_BIGINT, MST_DECV, MST_TEXT, MST_DATE, ...)
-    char enc;         // MSE_* / shorthand encoding char (e.g. 'v','p','t','u','w', or 'a' for auto)
+    char enc;         // MSE_* / shorthand encoding char (e.g. 'v','p','t','h','H', or 'a' for auto)
     bool is_pk = false;
 };
 
